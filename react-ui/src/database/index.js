@@ -22,11 +22,6 @@ export async function setup() {
     return new Promise((resolve, reject) => {
         createListingTable().then((r) => {
             console.log('Listing table created or exists');
-            //  addColumnToTable('LISTING','image','blob').then((r)=>{
-            //     console.log('Table Altered')
-            // }).catch((e)=>{
-            //     console.log('Table not altered',e)
-            // })
             createSettingsTable().then((r) => {
                 console.log('Settings table created or exists');
                 createHost(storeName, storeId).then((r) => {
