@@ -17,6 +17,16 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import TextareaAutosize from '@mui/base/TextareaAutosize';
+import { PhotoCamera } from "@mui/icons-material";
+import ConeSvg from "../assets/images/cone.svg"
+import ConeSvg2 from "../assets/images/cone2.svg"
+import ConeSvg3 from "../assets/images/cone3.svg"
+import imageCompression from 'browser-image-compression';
+import Dialog from '@mui/material/Dialog';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import UserWebCam from "./UserWebCam";
+
 
 
 
@@ -28,11 +38,27 @@ export default function ListingCreate() {
   const [form, setForm] = useState({
     name: "",
     asking_price: "",
-    image:"",
     description:""
   });
-  const [walletAddress, setWalletAddress] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('xl'));
 
+  const handleModalOpen = (i) => {
+    if(i===0 || images[i-1]!==undefined){
+      console.log(images,images[i-1]);
+    setCurrentIndex(i);
+    setOpenModal(true);
+    }
+  };
+
+  const handleModalClose = () => {
+    setOpenModal(false);
+  };
+
+  const [images,setImages]=useState([]);
+  const [walletAddress, setWalletAddress] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +86,11 @@ export default function ListingCreate() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+    if(images.length===0){
+      setError('Image required');
+      setLoading(false);
+      return false;
+    }
     // When a post request is sent to the create url, we'll add a new record to the database.
     const newListing = { ...form };
 
@@ -70,7 +100,7 @@ export default function ListingCreate() {
       createdByPk: host.pk,
       createdByName: host.name,
       walletAddress: walletAddress,
-      image:newListing.image,
+      image:images.join("(+_+)"),
       description:newListing.description
     })
     .then(function(listingId) {
@@ -105,11 +135,29 @@ export default function ListingCreate() {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
     })
-  const handleUpload=async (e)=>{
+  const handleUpload=async (e,i)=>{
+    let temp =[...images];
     if (e.target.files) {
-      const file = await fileToDataUri(e.target.files[0]) 
-      updateForm({image:file});
-      console.log("image added");
+      const imageFile = e.target.files[0];
+      console.log('originalFile instanceof Blob', imageFile instanceof Blob); // true
+      console.log(`originalFile size ${imageFile.size / 1024} KB`);
+      const options = {
+        maxSizeMB: 0.03,
+        maxWidthOrHeight: 828,
+        useWebWorker: true
+      }
+      try {
+        const compressedFile = await imageCompression(imageFile, options);
+        console.log('compressedFile instanceof Blob', compressedFile instanceof Blob); // true
+        console.log(`compressedFile size ${compressedFile.size / 1024} KB`); // smaller than maxSizeMB
+        const smp = await fileToDataUri(compressedFile);
+          temp[i] =smp;
+         setImages(temp);
+      } catch (error) {
+        console.log(error);
+        setError('File is not Image');
+      }
+      handleModalClose()
     }
   }
 
@@ -135,6 +183,57 @@ export default function ListingCreate() {
           autoComplete="off"
           onSubmit={onSubmit}
         >
+
+
+          <Grid container rowGap={4} style={{width: "100%",justifyContent: "space-between", padding:"1rem 0"}}>
+          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
+            { images[0] ? <img src={images[0]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"rgba(30, 51, 238, 0.47)", border: "0.25px solid rgba(30, 51, 238, 0.47)"}}>
+                  <Box ><PhotoCamera /></Box>
+                  <Box>
+                    <span>Image Upload</span>
+                    <p style={{margin: "0",color:"#4B4949", fontSize: "12px"}}>Primary Photo</p>
+                  </Box>
+              </Box>}
+            {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,0)}} hidden/> */}
+            <button type="Button" onClick={()=>{handleModalOpen(0)}} hidden/>
+          </Grid>
+          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
+             {images[1] ? <img src={images[1]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> : <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+                  <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
+                    <img src={ConeSvg2} alt={'cone'} style={{margin:"5%"}}/>
+                  </Box>
+                  <Box>
+                    <p style={{margin: "0",color:"#888787", fontSize: "12px"}}>Secound Photo</p>
+                  </Box>
+              </Box>}
+            {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,1)}} hidden/> */}
+            <button type="Button" onClick={()=>handleModalOpen(1)} hidden/>
+          </Grid>
+          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
+           {images[2] ? <img src={images[2]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :   <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+                  <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
+                    <img src={ConeSvg3} alt={'cone'}  style={{margin:"5%"}}/>
+                  </Box>
+                  <Box>
+                    <p style={{margin: "0",color:"#888787", fontSize: "12px"}}>Third Photo</p>
+                  </Box>
+              </Box>}
+            {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,2)}} hidden/> */}
+            <button type="Button" onClick={()=>handleModalOpen(2)} hidden/>
+          </Grid>
+          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
+            {images[3] ? <img src={images[3]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+                  <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
+                    <img src={ConeSvg} alt={'cone'} style={{margin:"5%"}} />
+                  </Box>
+                  <Box>
+                    <p style={{margin: "0",color:"#888787", fontSize: "12px"}}>Fourth Photo</p>
+                  </Box>
+              </Box>}
+            {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,3)}} hidden/> */}
+            <button type="Button" onClick={()=>handleModalOpen(3)} hidden/>
+          </Grid>
+          </Grid>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -149,30 +248,6 @@ export default function ListingCreate() {
                 onChange={(e) => updateForm({ name: e.target.value })}
                 variant="outlined"
               />
-            </Grid>
-            <Grid item xs={12}>
-            <FormControl fullWidth>
-                {form.image ?   
-                 <Box
-                  component="img"
-                  sx={{
-                    height: 150,
-                    width: 250,
-                    maxHeight: { xs: 150, md: 167 },
-                    maxWidth: { xs: 250, md: 250 },
-                  }}
-                  alt="The house from the offer."
-                  src={form.image}
-                /> : ""}
-                <InputLabel htmlFor="image" focused={true} shrink={true}>Image*</InputLabel>
-                <OutlinedInput
-                  id="image"
-                  type="file"
-                  label="Image"
-                  onChange={(e)=>{handleUpload(e)}}
-                  accept="image/png, image/gif, image/jpeg"
-                />
-              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -221,6 +296,16 @@ export default function ListingCreate() {
             </Button>
           } severity="success">Listing created and shared!</Alert> : null}
         </Box>
+        <Dialog
+        fullScreen={fullScreen}
+        open={openModal}
+        onClose={handleModalClose}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <Box alignContent="center">
+          <UserWebCam handleUpload={handleUpload} index={currentIndex} images={images} setImages={setImages} close={handleModalClose} /> 
+        </Box>
+      </Dialog>
       </Box>
     );
   }
