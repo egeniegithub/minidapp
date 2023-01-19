@@ -21,9 +21,9 @@ function Listing(props) {
       >
         <ListItemAvatar>
           {props.listing.image ? (
-            <Avatar alt={props.listing.name} src={props.listing.image} />
+            <Avatar alt={props.listing.name} src={props.listing.image.split("(+_+)")[0]} style={{borderRadius:"0px"}} />
           ) : (
-            <Avatar>
+            <Avatar style={{borderRadius:"0px"}}>
               <BungalowIcon />
             </Avatar>
           )}

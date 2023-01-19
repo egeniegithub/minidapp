@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -30,7 +30,9 @@ import UserWebCam from "./UserWebCam";
 
 
 
+
 export default function ListingCreate() {
+
   const [loading, setLoading] = useState(false);
   const [host, setHost] = useState();
   const [error, setError] = useState(null);
@@ -43,17 +45,24 @@ export default function ListingCreate() {
   const [openModal, setOpenModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('xl'));
-
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+  console.log("screen:",fullScreen);
   const handleModalOpen = (i) => {
     if(i===0 || images[i-1]!==undefined){
-      console.log(images,images[i-1]);
     setCurrentIndex(i);
     setOpenModal(true);
     }
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = (i) => {
+    if(i===-1){
+      setOpenModal(false);
+      return false;
+    }
+    console.log(i);
+    let temp=[...images];
+    temp.splice(i,1);
+    setImages(temp);
     setOpenModal(false);
   };
 
@@ -93,7 +102,7 @@ export default function ListingCreate() {
     }
     // When a post request is sent to the create url, we'll add a new record to the database.
     const newListing = { ...form };
-
+    var l_id = "test";
     createListing({
       name: newListing.name,
       price: newListing.asking_price,
@@ -102,9 +111,10 @@ export default function ListingCreate() {
       walletAddress: walletAddress,
       image:images.join("(+_+)"),
       description:newListing.description
-    })
-    .then(function(listingId) {
+    }).then(function(listingId) {
+        l_id=listingId;
         console.log(`Listing successfully added: ${listingId}`);
+        console.log('Successfully sent listing to contacts');
         console.log(`Attempting to send listing to contacts...`);
         return sendListingToContacts(listingId);
       }).then((result) => {
@@ -115,8 +125,12 @@ export default function ListingCreate() {
         } else {
           console.log('Successfully sent listing to contacts');
           setLoading(false);
-          setForm({ name: "", asking_price: "" });
+          setForm({ name: "", asking_price: "",description:"" });
           setSuccess(true);
+          console.log('/seller/listing/${l_id}');
+          setTimeout(() => {
+            navigate(`/seller/listing/${l_id}`);
+          }, 500); 
         }
       }).catch((e) => {
         console.log(e);
@@ -157,7 +171,7 @@ export default function ListingCreate() {
         console.log(error);
         setError('File is not Image');
       }
-      handleModalClose()
+      //handleModalClose(-1)
     }
   }
 
@@ -185,9 +199,18 @@ export default function ListingCreate() {
         >
 
 
-          <Grid container rowGap={4} style={{width: "100%",justifyContent: "space-between", padding:"1rem 0"}}>
-          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
-            { images[0] ? <img src={images[0]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"rgba(30, 51, 238, 0.47)", border: "0.25px solid rgba(30, 51, 238, 0.47)"}}>
+          <Grid container maxWidth={"sm"} rowGap={4} style={{width: "100%",justifyContent: "space-between", padding:"1rem 0",textAlign:"center"}}>
+          <Grid xs={5.5} component="label" color="primary" style={{color:"black", position: "relative",height:"140px"}}>
+            { images[0] ? <img src={images[0]} alt="" style={{
+              width:"100%",
+              height:"100%",
+              borderRadius:"15px",
+              left: "0",
+              right: "0",
+              top: "0",
+              bottom: "0",
+              objectFit: "cover"
+              }} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"rgba(30, 51, 238, 0.47)", border: "0.25px solid rgba(30, 51, 238, 0.47)",height:"100%" }}>
                   <Box ><PhotoCamera /></Box>
                   <Box>
                     <span>Image Upload</span>
@@ -197,8 +220,16 @@ export default function ListingCreate() {
             {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,0)}} hidden/> */}
             <button type="Button" onClick={()=>{handleModalOpen(0)}} hidden/>
           </Grid>
-          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
-             {images[1] ? <img src={images[1]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> : <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+          <Grid xs={5.5} component="label" color="primary" style={{color:"black", position: "relative",height:"140px"}}>
+             {images[1] ? <img src={images[1]} alt="" style={{
+              width:"100%",
+              height:"100%",
+              borderRadius:"15px",
+              left: "0",
+              right: "0",
+              top: "0",
+              bottom: "0",
+              objectFit: "cover"}} /> : <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE", height: "100%"}}>
                   <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
                     <img src={ConeSvg2} alt={'cone'} style={{margin:"5%"}}/>
                   </Box>
@@ -209,8 +240,16 @@ export default function ListingCreate() {
             {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,1)}} hidden/> */}
             <button type="Button" onClick={()=>handleModalOpen(1)} hidden/>
           </Grid>
-          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
-           {images[2] ? <img src={images[2]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :   <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+          <Grid xs={5.5} component="label" color="primary" style={{color:"black", position: "relative",height:"140px"}}>
+           {images[2] ? <img src={images[2]} alt="" style={{
+              width:"100%",
+              height:"100%",
+              borderRadius:"15px",
+              left: "0",
+              right: "0",
+              top: "0",
+              bottom: "0",
+              objectFit: "cover"}} /> :   <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE ",height:"100%"}}>
                   <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
                     <img src={ConeSvg3} alt={'cone'}  style={{margin:"5%"}}/>
                   </Box>
@@ -221,8 +260,16 @@ export default function ListingCreate() {
             {/* <input type="file" accept="image/*" onChange={(e)=>{handleUpload(e,2)}} hidden/> */}
             <button type="Button" onClick={()=>handleModalOpen(2)} hidden/>
           </Grid>
-          <Grid xs={12} md={5.5} component="label" color="primary" style={{color:"black"}}>
-            {images[3] ? <img src={images[3]} alt="" style={{width:"180px",height:"120px",borderRadius:"15px"}} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE "}}>
+          <Grid xs={5.5} component="label" color="primary" style={{color:"black", position: "relative",height:"140px"}}>
+            {images[3] ? <img src={images[3]} alt="" style={{
+              width:"100%",
+              height:"100%",
+              borderRadius:"15px",
+              left: "0",
+              right: "0",
+              top: "0",
+              bottom: "0",
+              objectFit: "cover"}} /> :  <Box style={{textAlign: "center",padding: "2rem 2rem 0.5rem", borderRadius: "15px", background:"#EFEEEE", border: "0.25px solid #EEEEEE ",height:"100%"}}>
                   <Box style={{border: "0.25px dashed #000000", width: "75px", margin: "auto", marginBottom: "15px", display:"flex", justifyContent: "center"}}>
                     <img src={ConeSvg} alt={'cone'} style={{margin:"5%"}} />
                   </Box>
@@ -278,6 +325,7 @@ export default function ListingCreate() {
               </FormControl>
             </Grid>
           </Grid>
+          <Grid style={{marginBottom:"20%"}}>
           <LoadingButton
             fullWidth
             variant="contained"
@@ -295,6 +343,7 @@ export default function ListingCreate() {
               OK
             </Button>
           } severity="success">Listing created and shared!</Alert> : null}
+          </Grid>
         </Box>
         <Dialog
         fullScreen={fullScreen}

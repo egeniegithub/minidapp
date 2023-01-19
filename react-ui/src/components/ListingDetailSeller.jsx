@@ -13,14 +13,18 @@ import Tooltip from "@mui/material/Tooltip";
 import { sendListingToContacts } from "../minima";
 import BackButton from "./BackButton";
 import ListingDetailSkeleton from './ListingDetailSkeleton';
+import Carousel from 'react-material-ui-carousel'
 
 function ListingDetailSeller() {
     const [listing, setListing] = useState();
+    const [images,setImages]=useState([]);
     const params = useParams();
 
     useEffect(() => {
         getListingById(params.id).then(function (result) {
             setListing(result);
+            setImages(result.image.split("(+_+)"))
+
         });
     }, [params.id]);
 
@@ -49,12 +53,18 @@ function ListingDetailSeller() {
                                 </Tooltip>
                             }
                         />
-                        <CardMedia
-                            component="img"
-                            width="100%"
-                            image={listing.image}
-                            alt="Test Image"
-                        />
+                         <Carousel animation="slide" navButtonsAlwaysVisible={true}>
+                            {
+                                images.map( (image, i) =>(
+                                <CardMedia
+                                    component="img"
+                                    width="100%"
+                                    image={image}
+                                    alt="Test Image"
+                                />) )
+                            }
+                         </Carousel>
+
                         <CardContent>
                             <Typography gutterBottom variant="h4" component="div">
                                 £{listing.price}
